@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 
 from .models import models, schemas
-from .controllers import orders, sandwiches, resources
+from .controllers import orders, sandwiches, resources, recipes
 from .dependencies.database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
@@ -135,3 +135,29 @@ def delete_one_resource(resource_id: int, db: Session = Depends(get_db)):
     if resource is None:
         raise HTTPException(status_code=404, detail="Resource not found")
     return resources.delete(db=db, resource_id=resource_id)
+
+
+# Recipe API Endpoints
+@app.post("/recipes/", response_model=schemas.Recipe, tags=["Recipes"])
+def create_recipe(recipe: schemas.RecipeCreate, db: Session = Depends(get_db)):
+    return recipes.create(db=db, recipe=recipe)
+
+
+@app.get("/recipes/", response_model=list[schemas.Recipe], tags=["Recipes"])
+def read_all_recipes(db: Session = Depends(get_db)):
+    return recipes.read_all(db)
+
+
+@app.get("/recipes/{recipe_id}", response_model=schemas.Recipe, tags=["Recipes"])
+def read_one_recipe(recipe_id: int, db: Session = Depends(get_db)):
+    return recipes.read_one(db=db, recipe_id=recipe_id)
+
+
+@app.put("/recipes/{recipe_id}", response_model=schemas.Recipe, tags=["Recipes"])
+def update_recipe(recipe_id: int, recipe: schemas.RecipeUpdate, db: Session = Depends(get_db)):
+    return recipes.update(db=db, recipe_id=recipe_id, recipe=recipe)
+
+
+@app.delete("/recipes/{recipe_id}", tags=["Recipes"])
+def delete_recipe(recipe_id: int, db: Session = Depends(get_db)):
+    return recipes.delete(db=db, recipe_id=recipe_id)
